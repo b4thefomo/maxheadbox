@@ -1,0 +1,58 @@
+.llm-output-container {
+  font-family: "PT Serif", serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 1.4em;
+  margin: 0.2em;
+  height: calc(100vh - 40px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.llm-output-text {
+  font-weight: normal;
+  font-style: normal;
+}
+
+.llm-output-text p {
+  margin: 0;
+}
+
+.llm-output-recorded {
+  color: rgb(175, 175, 175);
+
+  font-family: "PT Serif", serif;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.reaction-image-container {
+  position: fixed;
+  right: 5px;
+  bottom: 5px;
+  width: 80px;
+  height: 80px;
+}
+
+.reaction-image {
+  height: 80px;
+}
+
+.face-stack {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.face-base {
+  height: 100%;
+  width: 100%;
+}
+
+.mouth-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}

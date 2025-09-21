@@ -1,0 +1,54 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  background-color: black;
+  color: white;
+
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  cursor: none;
+}
+
+@font-face {
+  font-display: swap;
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/assets/fonts/instrument-serif/instrument-serif-v4-latin-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-display: swap;
+  font-family: 'Instrument Serif';
+  font-style: italic;
+  font-weight: 400;
+  src: url('/assets/fonts/instrument-serif/instrument-serif-v4-latin-italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-display: swap;
+  font-family: 'PT Serif';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/assets/fonts/pt-serif/pt-serif-v18-latin-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-display: swap;
+  font-family: 'PT Serif';
+  font-style: italic;
+  font-weight: 400;
+  src: url('/assets/fonts/pt-serif/pt-serif-v18-latin-italic.woff2') format('woff2');
+}

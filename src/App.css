@@ -1,0 +1,73 @@
+.action-ribbon {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  border: 20px solid transparent;
+  border-image-slice: 1;
+  display: block;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.action-ribbon.record {
+  border: 20px solid red;
+  animation: 2s blink linear infinite;
+}
+
+.action-ribbon.processing {
+  border: 20px solid;
+  border-image: conic-gradient(from var(--angle),
+      rgb(125, 125, 125), rgb(255, 255, 255)) 1;
+  animation: 5s rotate linear infinite;
+}
+
+.action-ribbon.rainbow {
+  border: 20px solid;
+  border-image: conic-gradient(from var(--angle),
+      rgb(255, 110, 110),
+      rgb(255, 255, 110),
+      rgb(110, 255, 110),
+      rgb(110, 255, 255),
+      rgb(110, 110, 255),
+      rgb(255, 110, 255),
+      rgb(255, 110, 110)) 1;
+  animation: 5s rotate linear infinite;
+}
+
+.action-ribbon.idle {
+  border: 20px solid;
+  border-image: conic-gradient(from var(--angle),
+      rgb(140, 0, 255),
+      rgb(71, 0, 177),
+      #00bbff,
+      #00ffa8,
+      rgb(140, 0, 255)) 1;
+  animation: 10s rotate linear infinite;
+}
+
+@keyframes blink {
+  10% {
+    border: 20px solid red;
+  }
+
+  50% {
+    border: 20px solid transparent;
+  }
+
+  100% {
+    border: 20px solid red;
+  }
+}
+
+@keyframes rotate {
+  to {
+    --angle: 360deg;
+  }
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
