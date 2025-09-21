@@ -15,9 +15,11 @@ Max Headbox is an open-source voice-activated LLM Agent designed to run on a Ras
 
 To get Max Headbox up and running, you'll need the following hardware:
 
-* [Raspberry Pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/)
+* [Raspberry Pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/) (tested on a 15GB and 8GB model)
 * A _microphone_ is necessary for voice commands. (I've used [this one](https://www.amazon.com/dp/B071WH7FC6) from Amazon)
 * [GeeekPi](https://www.amazon.com/dp/B0D7VDWBBC) Screen, Case, and Cooler: This all-in-one bundle from Amazon provides a screen, a protective case, and an active cooler to keep your Raspberry Pi running smoothly. (This bundle is optional but definitley use an active cooler!)
+
+If you don't want to replicate the exact box form factor, you can still run it anywhere you want, just make sure you have about 6GB available to run the LLMs.
 
 ## Software Requirements
 
@@ -139,7 +141,7 @@ Great idea. When I have time, I'll definitely look into it. For now, I just want
 
 ### Why not just use tool calls APIs?
 
-Fantastic question, thanks for asking! Check out my blog post to see why I went with redefining a function payload for invoking tools instead of using the tools’ APIs directly. Here’s the link.
+Fantastic question, thanks for asking! Check out my [blog post](https://blog.simone.computer/an-agent-desktoy) to see why I went with redefining a function payload for invoking tools instead of using the tools' APIs directly.
 
 ### Was this vibecoded?
 
