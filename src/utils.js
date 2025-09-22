@@ -17,6 +17,7 @@ const toggleFullscreen = () => {
   }
 };
 
+// I absolutely hate this I will rewrite it or use something else
 const processStreamResponse = async (
   response,
   setResponseOnScreen,
