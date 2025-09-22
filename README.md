@@ -11,6 +11,8 @@
 
 Max Headbox is an open-source voice-activated LLM Agent designed to run on a Raspberry Pi. It can be configured to execute a variety of tools and perform actions.
 
+![blog](https://raw.githubusercontent.com/syxanash/awesome-web-desktops/refs/heads/main/assets/notebook.png) Read my [blog post](https://blog.simone.computer/an-agent-desktoy) about this project!
+
 ## Hardware Requirements
 
 To get Max Headbox up and running, you'll need the following hardware:
