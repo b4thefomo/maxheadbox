@@ -104,9 +104,8 @@ npm run start-dev
 
 ## Creating Tools
 
-Tools require a frontend component located in `src/tools/` and, optionally, a Ruby backend handler in `backend/notions/`.
-If your tool only needs frontend JavaScript, a backend handler isn’t necessary.
-However, if you want your tool to perform actions on the Raspberry Pi hardware itself, you can create new routes in the Ruby backend and expose them via REST APIs.
+Creating tools is as simple as making a JavaScript module in `src/tools/` that exports an object with four properties: the tool's **name**, the **parameters** passed to the function, a **describe** field, and the function's main **execution** body.
+Some frontend tools may require backend API handlers to fetch information from the Pi hardware (since the frontend cannot query it directly) and expose it via REST. I created a folder in `backend/notions/` where I placed all these Ruby Sinatra routes.
 
 Take a look at what's already there to have an idea.
 The tools with the `.txt` extension are provided for reference. If you want to import them into the agent, just rename the extension to `.js` or `.rb` for the backend ones.
