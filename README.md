@@ -134,7 +134,7 @@ I'm aware of Ollama's shady practices and the issues with [llama.cpp](https://gi
 
 ### Why connecting the frontend directly to Ollama?
 
-I wanted the web app to be the most important part of the project, containing the logic of the actual Agent. I thought of using the Ruby+Python backend layer only for interacting with the Raspberry Pi hardware, it could easily be rewritten in a different stack and reconnected to the frontend if needed.
+I wanted the web app to be the most important part of the project, containing the logic of the actual Agent. I thought of using the Ruby+Python backend layer only for interacting with the Raspberry Pi hardware, it could easily be rewritten in a different stack and reconnected to the frontend if needed. Check the [architecture diagram here](https://blog.simone.computer/an-agent-desktoy#nothing-leaves-the-pi).
 
 ### Why use Vosk instead of reusing faster-whisper?
 
@@ -142,7 +142,7 @@ Great idea. When I have time, I'll definitely look into it. For now, I just want
 
 ### Why not just use tool calls APIs?
 
-Fantastic question, thanks for asking! Check out my [blog post](https://blog.simone.computer/an-agent-desktoy) to see why I went with redefining a function payload for invoking tools instead of using the tools' APIs directly.
+Fantastic question, thanks for asking! Check out my [blog post](https://blog.simone.computer/an-agent-desktoy#make-it-agentic) to see why I went with redefining a function payload for invoking tools instead of using the tools' APIs directly.
 
 ### Was this vibecoded?
 
