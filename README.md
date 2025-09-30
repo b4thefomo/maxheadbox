@@ -136,6 +136,11 @@ I'm aware of Ollama's shady practices and the issues with [llama.cpp](https://gi
 
 I wanted the web app to be the most important part of the project, containing the logic of the actual Agent. I thought of using the Ruby+Python backend layer only for interacting with the Raspberry Pi hardware, it could easily be rewritten in a different stack and reconnected to the frontend if needed. Check the [architecture diagram here](https://blog.simone.computer/an-agent-desktoy#nothing-leaves-the-pi).
 
+### Won't those useless animations slow down the LLM inference?
+
+Yes for sure, but after extensive testing, I noticed that the performance impact isn’t very significant. To be completely honest, at most it might save a few seconds before the LLM completes its job.
+I'd rather have a nice UI feedback showing that something is happening, rather than a black screen while the LLM is processing (a small tradeoff). Happy to be proven wrong tho!
+
 ### Why use Vosk instead of reusing faster-whisper?
 
 Great idea. When I have time, I'll definitely look into it. For now, I just wanted to make the wake-word system work, and that's it.
