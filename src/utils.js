@@ -1,3 +1,7 @@
+import { Lexer } from 'streaming-json';
+import get from 'lodash/get';
+import systemPrompt from './systemPrompt';
+
 function speak(backendURL, text) {
   fetch(`${backendURL}/speak`, {
     method: 'POST',
@@ -17,72 +21,56 @@ const toggleFullscreen = () => {
   }
 };
 
-// I absolutely hate this I will rewrite it or use something else
+function getTrailingDiff(str1, str2) {
+  if (str2.startsWith(str1)) {
+    return str2.substring(str1.length);
+  }
+  return str2;
+}
+
 const processStreamResponse = async (
   response,
   setResponseOnScreen,
   setReaction,
   changeUIState,
-  addAggregatedResponseChunk,
   onFinishStream
 ) => {
-  let jsonBuffer = '';
-  let collectingMessage = false;
-  let messageComplete = false;
   let uiStateChanged = false;
-  let emotionSet = false;
+  let isEmotionDefined = false;
+  let aggregatedMessage = '';
+
+  const lexer = new Lexer();
+  const feelings = get(systemPrompt, 'conversation.format.properties.feeling.enum', []);
 
   for await (const part of response) {
-    const newContent = part.message.content;
-    addAggregatedResponseChunk(newContent);
-    jsonBuffer += newContent;
+    if (part?.message?.content) {
+      lexer.AppendString(part.message.content);
+    }
 
-    if (!collectingMessage && !messageComplete) {
-      const messageMatch = jsonBuffer.match(/"message"\s*:\s*"/);
-      if (messageMatch) {
-        collectingMessage = true;
-        // Slice the buffer to start right after "message": "
-        jsonBuffer = jsonBuffer.slice(messageMatch.index + messageMatch[0].length);
+    const lexerOutput = JSON.parse(lexer.CompleteJSON());
+
+    if ('message' in lexerOutput && lexerOutput.message) {
+      if (!uiStateChanged) {
+        changeUIState();
+        uiStateChanged = true;
+      }
+
+      const diff = getTrailingDiff(aggregatedMessage, lexerOutput.message);
+      if (diff) {
+        aggregatedMessage = lexerOutput.message;
+        setResponseOnScreen(prev => [...prev, diff]);
       }
     }
 
-    if (collectingMessage) {
-      let i = 0;
-      while (i < jsonBuffer.length) {
-        // Change the UI only once when the first character arrives
-        if (!uiStateChanged) {
-          changeUIState();
-          uiStateChanged = true;
-        }
+    if (!isEmotionDefined && 'feeling' in lexerOutput && feelings.includes(lexerOutput.feeling)) {
+      isEmotionDefined = true;
+      setReaction(lexerOutput.feeling);
 
-        const char = jsonBuffer[i];
-
-        // Check for the unescaped closing quote to end the message
-        if (char === '"' && jsonBuffer[i - 1] !== '\\') {
-          messageComplete = true;
-          collectingMessage = false;
-          i++; // Consume the final quote
-          onFinishStream();
-          break; // Exit the character loop for this chunk
-        } else {
-          // Stream the character to the UI
-          setResponseOnScreen(prev => [...prev, char]);
-        }
-        i++;
-      }
-      // Trim the processed characters from the buffer
-      jsonBuffer = jsonBuffer.slice(i);
-    }
-
-    if (messageComplete && !emotionSet) {
-      const emotionMatch = jsonBuffer.match(/"feeling"\s*:\s*"([^"]+)"/);
-      if (emotionMatch && emotionMatch[1]) {
-        const emotion = emotionMatch[1];
-        setReaction(emotion);
-        emotionSet = true;
-      }
+      break;
     }
   }
+
+  onFinishStream(aggregatedMessage);
 };
 
 export default { toggleFullscreen, processStreamResponse, speak };
