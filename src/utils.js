@@ -44,11 +44,11 @@ const processStreamResponse = async (
   const feelings = systemPrompt?.conversation?.format?.properties?.feeling?.enum ?? [];
 
   for await (const part of response) {
-    const newContent = part.message.content;
-    addAggregatedResponseChunk(newContent);
+    const newChunk = part.message.content;
+    addAggregatedResponseChunk(newChunk);
 
-    if (newContent) {
-      lexer.AppendString(newContent);
+    if (newChunk) {
+      lexer.AppendString(newChunk);
     }
 
     const lexerOutput = JSON.parse(lexer.CompleteJSON());
@@ -80,8 +80,8 @@ const processStreamResponse = async (
   }
 
   // occasionally small models add garbage at the end like extra spaces
-  // and /t characters that's why I break immediately after getting the feeling
-  // and then close the JSON manually here to the last chunk
+  // and \t characters that's why I break immediately after getting the feeling
+  // and then close the JSON manually for the last chunk
   addAggregatedResponseChunk('"}');
 };
 
