@@ -78,6 +78,11 @@ const processStreamResponse = async (
       break;
     }
   }
+
+  // occasionally small models add garbage at the end like extra spaces
+  // and /t characters that's why I break immediately after getting the feeling
+  // and then close the JSON manually here to the last chunk
+  addAggregatedResponseChunk('"}');
 };
 
 export default { toggleFullscreen, processStreamResponse, speak };
