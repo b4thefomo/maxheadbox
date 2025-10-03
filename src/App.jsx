@@ -118,8 +118,9 @@ function App() {
         setFinishedStreaming(false);
         setStatusMessage(false);
         setShowFace(false);
-      }, (finalMessage) => {
-        aggregatedResponse.content = finalMessage;
+      }, (chunk) => {
+        aggregatedResponse.content += chunk;
+      }, () => {
         setFinishedStreaming(true);
       });
 
@@ -307,8 +308,9 @@ function App() {
         setFinishedStreaming(false);
         setStatusMessage(false);
         setShowFace(false);
-      }, (finalMessage) => {
-        aggregatedResponse.content = finalMessage;
+      }, (chunk) => {
+        aggregatedResponse.content += chunk;
+      }, () => {
         setFinishedStreaming(true);
       });
 

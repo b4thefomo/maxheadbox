@@ -1,5 +1,4 @@
 import { Lexer } from 'streaming-json';
-import get from 'lodash/get';
 import systemPrompt from './systemPrompt';
 
 function speak(backendURL, text) {
@@ -33,18 +32,23 @@ const processStreamResponse = async (
   setResponseOnScreen,
   setReaction,
   changeUIState,
+  addAggregatedResponseChunk,
   onFinishStream
 ) => {
   let uiStateChanged = false;
   let isEmotionDefined = false;
+  let finishedMessageStream = false;
   let aggregatedMessage = '';
 
   const lexer = new Lexer();
-  const feelings = get(systemPrompt, 'conversation.format.properties.feeling.enum', []);
+  const feelings = systemPrompt?.conversation?.format?.properties?.feeling?.enum ?? [];
 
   for await (const part of response) {
-    if (part?.message?.content) {
-      lexer.AppendString(part.message.content);
+    const newContent = part.message.content;
+    addAggregatedResponseChunk(newContent);
+
+    if (newContent) {
+      lexer.AppendString(newContent);
     }
 
     const lexerOutput = JSON.parse(lexer.CompleteJSON());
@@ -62,6 +66,11 @@ const processStreamResponse = async (
       }
     }
 
+    if (!finishedMessageStream && Object.keys(lexerOutput).length > 1) {
+      onFinishStream(aggregatedMessage);
+      finishedMessageStream = true;
+    }
+
     if (!isEmotionDefined && 'feeling' in lexerOutput && feelings.includes(lexerOutput.feeling)) {
       isEmotionDefined = true;
       setReaction(lexerOutput.feeling);
@@ -69,8 +78,6 @@ const processStreamResponse = async (
       break;
     }
   }
-
-  onFinishStream(aggregatedMessage);
 };
 
 export default { toggleFullscreen, processStreamResponse, speak };
