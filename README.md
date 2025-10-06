@@ -69,6 +69,21 @@ ollama pull gemma3:1b
 ollama pull qwen3:1.7b
 ```
 
+In the settings select expose Ollama to the network:
+
+```
+sudo systemctl edit ollama.service
+```
+
+Enter the following conf:
+```
+[Service]
+
+Environment="OLLAMA_HOST=0.0.0.0"
+```
+
+and then restart with: `sudo systemctl daemon-reload && sudo systemctl restart ollama`
+
 ## Configure
 
 Before starting the app, you need to configure the following variables in your `.env` file:
@@ -138,7 +153,7 @@ I wanted the web app to be the most important part of the project, containing th
 
 ### Won't those useless animations slow down the LLM inference?
 
-Yes for sure, but after extensive testing, I noticed that the performance impact isn’t very significant. To be completely honest, at most it might save a few seconds before the LLM completes its job.
+Yes for sure, but after extensive testing, I noticed that the performance impact isn't very significant. To be completely honest, at most it might save a few seconds before the LLM completes its job.
 I'd rather have a nice UI feedback showing that something is happening, rather than a black screen while the LLM is processing (a small tradeoff). Happy to be proven wrong tho!
 
 ### Why use Vosk instead of reusing faster-whisper?
@@ -151,7 +166,7 @@ Fantastic question, thanks for asking! Check out my [blog post](https://blog.sim
 
 ### Was this vibecoded?
 
-No, if the quality of the code is shite, it’s entirely my doing, completely organic, don’t worry.<br>
-Jokes aside, the only tools I’ve created using Copilot are `weather.rb` and `wiki.rb`, because I wanted something quick to test my Agent.
+No, if the quality of the code is shite, it's entirely my doing, completely organic, don't worry.<br>
+Jokes aside, the only tools I've created using Copilot are `weather.rb` and `wiki.rb`, because I wanted something quick to test my Agent.
 
 _Dinner is ready. For any more questions, [my assistant](mailto:theassistant@simone.computer) will take it from here alternatively open a GitHub issue. Have a good night!_
