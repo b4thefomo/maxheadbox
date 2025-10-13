@@ -1,7 +1,13 @@
 const toolModules = import.meta.glob('./tools/*.js', { eager: true });
 
+let cachedToolsList = null;
+
 export const getToolsList = () => {
-  return Object.values(toolModules).reduce((acc, module) => {
+  if (cachedToolsList) {
+    return cachedToolsList;
+  }
+
+  const toolsList = Object.values(toolModules).reduce((acc, module) => {
     if (Array.isArray(module.default)) {
       module.default.forEach(tool => {
         if (tool.name && tool.execution) {
@@ -9,7 +15,8 @@ export const getToolsList = () => {
             name: tool.name,
             execution: tool.execution,
             params: tool.params,
-            description: tool.description
+            description: tool.description,
+            dangerous: tool.dangerous || false,
           };
         }
       });
@@ -18,11 +25,16 @@ export const getToolsList = () => {
         name: module.default.name,
         execution: module.default.execution,
         params: module.default.params,
-        description: module.default.description
+        description: module.default.description,
+        dangerous: module.default.dangerous || false,
       };
     }
     return acc;
   }, {});
+
+  cachedToolsList = toolsList;
+
+  return toolsList;
 };
 
 export const processTool = async (tool) => {
