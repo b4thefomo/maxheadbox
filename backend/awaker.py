@@ -9,7 +9,7 @@ import os
 load_dotenv()
 BACKEND_URL = os.getenv("VITE_BACKEND_URL")
 
-MODEL_PATH = "backend/assets/vosk-model-small-en-us-0.15"
+MODEL_PATH = "assets/vosk-model-small-en-us-0.15"
 WAKE_WORD = "max"
 
 q = queue.Queue()
