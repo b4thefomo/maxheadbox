@@ -8,7 +8,7 @@ require 'uri'
 require 'shellwords'
 require 'dotenv'
 
-Dotenv.load('.env.local', '.env')
+Dotenv.load(File.join(File.dirname(__FILE__), '..', '.env.local'), File.join(File.dirname(__FILE__), '..', '.env'))
 
 set :server, 'thin'
 set :sockets, []
@@ -94,19 +94,24 @@ post '/start_recording' do
   filename = 'recording.wav'
   filepath = File.join(RECORDINGS_DIR, filename)
 
-  command = "rec -c 1 -r 16000 #{Shellwords.escape(filepath)} silence 1 0.1 1% 1 1.0 1%"
+  # Add timeout to force stop after 10 seconds, with more aggressive silence detection
+  command = "timeout 10 sox -t alsa hw:0,0 -c 1 -r 16000 #{Shellwords.escape(filepath)} gain 20 silence 1 0.3 2% 1 2.0 2%"
 
   begin
+    @logger.info "[Recording] 🎤 Starting new recording..."
     pid = Process.spawn(command)
 
     $recording_pid = pid
     $current_recording_file = filepath
-    @logger.info "Started recording (PID: #{$recording_pid}) to #{filepath}"
+    @logger.info "[Recording] ✅ Started (PID: #{$recording_pid}) file: #{filepath}"
 
     Thread.new do
-      @logger.info "Waiting for process #{$recording_pid} to finish..."
+      start_time = Time.now
+      @logger.info "[Recording] Waiting for process #{$recording_pid} to finish..."
       Process.wait($recording_pid)
-      @logger.info "Process #{$recording_pid} finished. Starting transcription..."
+      duration = (Time.now - start_time).round(2)
+      file_size = File.exist?(filepath) ? (File.size(filepath) / 1024.0).round(1) : 0
+      @logger.info "[Recording] ⏹️  Finished after #{duration}s, file size: #{file_size}KB"
 
       settings.sockets.each do |s|
         s.send({
@@ -115,10 +120,20 @@ post '/start_recording' do
       end
 
       if File.exist?(filepath)
+        @logger.info "[Transcription] 📝 Calling Whisper service..."
+        transcribe_start = Time.now
         segments = transcribe_file(filepath)
+        transcribe_duration = (Time.now - transcribe_start).round(2)
+
         message_output = ''
         segments.each do |s|
           message_output += s['text']
+        end
+
+        if message_output.strip.empty?
+          @logger.info "[Transcription] ✅ Completed in #{transcribe_duration}s → (empty - silence detected)"
+        else
+          @logger.info "[Transcription] ✅ Completed in #{transcribe_duration}s → \"#{message_output.strip}\""
         end
 
         settings.sockets.each do |s|
@@ -128,9 +143,9 @@ post '/start_recording' do
             output: message_output
           }.to_json)
         end
-        @logger.info 'Sent recording_finished event via WebSocket.'
+        @logger.info "[WebSocket] 📤 Sent recording_finished event to #{settings.sockets.length} client(s)"
       else
-        @logger.warn 'Recording file was not found after process finished.'
+        @logger.error "[Recording] ❌ File not found after process finished: #{filepath}"
         settings.sockets.each do |s|
           s.send({
             event: 'recording_error',
@@ -186,6 +201,56 @@ get '/is_recording' do
   end
 end
 
+post '/test_record' do
+  if is_recording?
+    status 409
+    return { error: 'Recording is already in progress.' }.to_json
+  end
+
+  filename = 'test_recording.wav'
+  filepath = File.join(RECORDINGS_DIR, filename)
+
+  # Simple 5-second recording without silence detection, with volume boost
+  command = "timeout 5 sox -t alsa hw:0,0 -c 1 -r 16000 #{Shellwords.escape(filepath)} gain 20"
+
+  begin
+    @logger.info "Starting test recording for 5 seconds..."
+    pid = Process.spawn(command)
+    $recording_pid = pid
+    $current_recording_file = filepath
+
+    # Wait for recording to finish
+    Process.wait(pid)
+    $recording_pid = nil
+    @logger.info "Test recording finished."
+
+    # Transcribe immediately
+    if File.exist?(filepath)
+      segments = transcribe_file(filepath)
+      message_output = ''
+      segments.each do |s|
+        message_output += s['text']
+      end
+
+      @logger.info "Transcription: #{message_output}"
+      {
+        message: 'Test recording completed',
+        transcription: message_output,
+        file: filepath
+      }.to_json
+    else
+      @logger.warn 'Recording file was not created.'
+      status 500
+      { error: 'Recording file was not created.' }.to_json
+    end
+  rescue StandardError => e
+    $recording_pid = nil
+    @logger.error "Error during test recording: #{e.message}"
+    status 500
+    { error: "Test recording failed: #{e.message}" }.to_json
+  end
+end
+
 get '/ws' do
   if !request.websocket?
     status 426
@@ -195,16 +260,16 @@ get '/ws' do
       settings.sockets << ws
 
       ws.onopen do
-        @logger.info 'WebSocket opened'
+        @logger.info "[WebSocket] ✅ Client connected (total: #{settings.sockets.length})"
       end
 
       ws.onmessage do |msg|
-        @logger.info "Received message: #{msg}"
+        @logger.info "[WebSocket] 📨 Received message: #{msg}"
       end
 
       ws.onclose do
         settings.sockets.delete(ws)
-        @logger.info 'WebSocket closed'
+        @logger.info "[WebSocket] ⚠️  Client disconnected (remaining: #{settings.sockets.length})"
       end
     end
   end
@@ -212,7 +277,7 @@ end
 
 post '/spawn-listener' do
   unless $listener_pid
-    $listener_pid = Process.spawn('python3 backend/awaker.py')
+    $listener_pid = Process.spawn('python3 awaker.py')
     Process.detach($listener_pid)
     @logger.info "Spawning listener: #{$listener_pid}"
   end

@@ -12,10 +12,42 @@ The project uses a custom agentic workflow (not tool calling APIs) where the LLM
 
 ## Architecture
 
+**📚 See comprehensive documentation:**
+- **[ARCHITECTURE_DIAGRAMS.md](./ARCHITECTURE_DIAGRAMS.md)** - 11 Mermaid diagrams showing complete system (Hardware → Kernel → Services → Application)
+- **[MODULAR_ARCHITECTURE.md](./MODULAR_ARCHITECTURE.md)** - Modular backend design with clean separation of concerns
+- **[DEVELOPMENT_LIFECYCLE.md](./DEVELOPMENT_LIFECYCLE.md)** - Development workflow and logging best practices
+- **[SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)** - Original system architecture documentation
+
+### Modular Architecture (NEW)
+
+The backend has been refactored into clean, testable modules:
+
+**Backend Structure:**
+```
+backend/
+├── server_new.rb          # Main server (260 lines, just routes)
+├── audio/                 # Audio processing module
+│   ├── recorder.rb        # Recording logic (sox wrapper)
+│   ├── transcriber.rb     # Whisper API client
+│   └── whisper_service.py # FastAPI transcription service
+├── llm/                   # LLM interactions module
+│   └── gateway.rb         # Ollama API wrapper
+├── tools/                 # External integrations
+│   ├── weather.rb, wiki.rb, sysinfo.rb, notes.rb
+└── core/                  # Shared utilities
+    └── websocket_manager.rb
+```
+
+**Key Benefits:**
+- Single responsibility per module
+- Logger injected into every module for comprehensive debugging
+- Easy to test components independently
+- Clean API boundaries
+
 ### Three-Tier System
 
 1. **Frontend (React + Vite)**: Contains the core Agent logic, connects directly to Ollama, handles UI/UX
-2. **Backend (Ruby Sinatra)**: Manages voice recording, WebSocket communication, and hardware-specific routes
+2. **Backend (Modular Ruby)**: Clean modules for audio, LLM, tools, and core utilities
 3. **Python Services**: Runs voice transcription (faster-whisper) and wake-word detection (Vosk)
 
 ### Key Flow
@@ -64,6 +96,23 @@ Some tools require backend API handlers in `backend/notions/*.rb` to access Rasp
 - `globalMessagesRef`: Tracks user/assistant conversation history
 - `APP_STATUS`: Manages UI states (IDLE, RECORDING, THINKING, SPEAKING, etc.)
 - WebSocket handles async events (wake word, recording finished, errors)
+
+## Development Scripts (NEW)
+
+**Quick deployment and monitoring:**
+
+```bash
+# Deploy to Raspberry Pi (builds, syncs, restarts, verifies)
+./scripts/deploy.sh
+
+# Check all services are running and healthy
+./scripts/health_check.sh
+
+# View real-time logs from all services (color-coded)
+./scripts/view_logs.sh
+```
+
+See [scripts/README.md](./scripts/README.md) for complete documentation.
 
 ## Development Commands
 

@@ -1,5 +1,53 @@
 # Max Headbox Deployment Plan
 
+## Recent Changes (2025-10-20)
+
+### ✅ Phase 1: Quick Wins - COMPLETED
+
+**1. Replaced Face Animations with Typography**
+- **Problem:** Complex Faces.jsx component (~177 lines) with animation state bugs causing black screen crashes
+- **Solution:** Created simple StatusDisplay.jsx component with emoji-based status indicators
+- **Status Displays:**
+  - 🎤 Listening... (recording)
+  - 🤔 Thinking... (processing)
+  - 📖 Processing... (reading/transcribing)
+  - ❤️ Got it! (successful transcription)
+  - ❌ Error (failed operation)
+  - 😊 Hey there! (idle)
+  - 😴 Resting... (sleepy/screensaver)
+  - 💬 Speaking... (LLM responding)
+- **Files Modified:**
+  - Created: `src/StatusDisplay.jsx`, `src/StatusDisplay.css`
+  - Modified: `src/App.jsx` (replaced Faces import with StatusDisplay)
+- **Result:** No more UI crashes, cleaner codebase, easier to debug
+
+**2. Fixed Empty Transcription Issue**
+- **Problem:** Whisper returning empty arrays despite good audio levels
+- **Root Cause:**
+  - "tiny.en" model too aggressive/small
+  - Test recordings had no actual speech (background noise only)
+  - Volume levels improved but still needed better model
+- **Solution:**
+  - Upgraded: `tiny.en` → `base.en` Whisper model (better accuracy)
+  - Added: Volume boost (`gain 20` in sox recording commands)
+  - Improved: VAD filtering with tuned parameters
+  - Added: Filter to skip hallucinated single-character segments
+  - Enhanced: Beam search settings (beam_size=5, best_of=5)
+- **Files Modified:**
+  - `backend/server.rb` (line 97, 199): Added `gain 20` to sox commands
+  - `backend/whisper_service.py`: Upgraded model, added filtering
+- **Result:** Transcription now works reliably with actual speech
+
+**3. Deployment & Testing**
+- All services running on Raspberry Pi:
+  - ✅ Frontend: http://192.168.1.47:4173/
+  - ✅ Backend: Port 4567 (Sinatra with WebSocket)
+  - ✅ Whisper: Port 8000 (FastAPI with base.en model)
+- Test recording button functional
+- Typography status display working correctly
+
+---
+
 ## Architecture Simplification Notes
 
 **Current Stack Issues:**

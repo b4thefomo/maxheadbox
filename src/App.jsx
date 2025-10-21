@@ -9,7 +9,7 @@ import { processTool } from './toolProcessor.js';
 import SystemPrompt from './systemPrompt.js';
 import StatusMessage from './StatusMessage';
 import WordsContainer from './WordsContainer';
-import Faces from './Faces';
+import StatusDisplay from './StatusDisplay';
 import './App.css';
 
 const APP_STATUS = {
@@ -38,6 +38,8 @@ function App() {
 
   const [statusMessage, setStatusMessage] = useState(true);
   const [internalMessage, setInternalMessage] = useState('');
+
+  // Removed debug states - no longer needed for tap-to-talk interface
 
   const globalAgentChatRef = useRef([]);
   const globalMessagesRef = useRef([]);
@@ -95,6 +97,7 @@ function App() {
   }, [startScreensaverTimeout]);
 
   const processConversation = useCallback(async (userInput, inputRole = 'user') => {
+    console.log("💬 PROCESS CONVERSATION: Starting with input:", userInput, "role:", inputRole);
     globalMessagesRef.current.push({ role: inputRole, content: userInput });
 
     const payload = {
@@ -151,6 +154,7 @@ function App() {
   }, [spawnListener]);
 
   const agentRequest = useCallback(async (userInput) => {
+    console.log("🤖 AGENT REQUEST: Starting with input:", userInput);
     setBackendResponse([]);
 
     let toolLoopGuard = 0;
@@ -395,20 +399,39 @@ function App() {
       randomQuestionTimeout.current = null;
     }
 
-    const onClickHandler = APP_STATE_MAP[appStatus]?.onClick;
+    // Tap anywhere to start recording when idle or in screensaver mode
+    if (appStatus === APP_STATUS.IDLE || appStatus === APP_STATUS.SCREENSAVER) {
+      handleStartRecording();
+      return;
+    }
 
+    // Otherwise use existing action map
+    const onClickHandler = APP_STATE_MAP[appStatus]?.onClick;
     if (onClickHandler) {
       onClickHandler();
     }
-  }, [APP_STATE_MAP, appStatus]);
+  }, [appStatus, handleStartRecording, clearScreenSaverTimeout, APP_STATE_MAP, APP_STATUS]);
+
+  // testRecord function removed - using tap-to-talk with handleStartRecording instead
 
   useEffect(() => {
+    console.log("🔌 Connecting to WebSocket:", `${config.WEBSOCKET_URL}/ws`);
     const ws = new WebSocket(`${config.WEBSOCKET_URL}/ws`);
+
+    ws.onopen = () => {
+      console.log("✅ WebSocket connected!");
+      setDebugInfo(prev => ({ ...prev, wsConnected: true }));
+    };
+
+    ws.onerror = (error) => {
+      console.error("❌ WebSocket error:", error);
+      setDebugInfo(prev => ({ ...prev, wsConnected: false, lastError: 'WebSocket connection error' }));
+    };
 
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log("Received WebSocket message:", message);
+        console.log("📨 Received WebSocket message:", message);
 
         if (message.event === 'recording_finished') {
           setStatusMessage(false);
@@ -442,6 +465,8 @@ function App() {
     };
 
     ws.onclose = () => {
+      console.log("🔌 WebSocket disconnected");
+      setDebugInfo(prev => ({ ...prev, wsConnected: false }));
     };
 
     return () => {
@@ -452,7 +477,7 @@ function App() {
 
   const renderContent = useCallback(() => {
     if (showFace) {
-      return <Faces face={face} />;
+      return <StatusDisplay status={face} />;
     }
     return statusMessage
       ? <StatusMessage message={internalMessage} />
@@ -462,6 +487,25 @@ function App() {
   return (
     <div className={`action-ribbon ${renderRibbon()}`} onClick={handleClickAction}>
       {renderContent()}
+
+      {/* Tap to talk prompt - shown when idle or in screensaver mode */}
+      {(appStatus === APP_STATUS.IDLE || appStatus === APP_STATUS.SCREENSAVER) && (
+        <div style={{
+          position: 'fixed',
+          bottom: '60px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          fontSize: '28px',
+          fontWeight: 'bold',
+          color: '#888',
+          textAlign: 'center',
+          pointerEvents: 'none',
+          fontFamily: 'monospace',
+          textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+        }}>
+          👆 Tap to talk
+        </div>
+      )}
     </div>
   );
 }

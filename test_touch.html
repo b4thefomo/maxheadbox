@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Touch Test</title>
+<style>
+body {
+  margin: 0;
+  background: #000;
+  color: #0f0;
+  font-family: monospace;
+  font-size: 24px;
+}
+#log {
+  padding: 20px;
+}
+.click-area {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.message {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+</style>
+</head>
+<body>
+<div class="click-area" id="area">
+  <div class="message">TAP ANYWHERE</div>
+  <div id="log">Waiting for touch...</div>
+</div>
+<script>
+let count = 0;
+const log = document.getElementById('log');
+const area = document.getElementById('area');
+
+function logEvent(type, x, y) {
+  count++;
+  log.innerHTML = type + ' detected! #' + count + '<br>X: ' + x + ', Y: ' + y + '<br>Time: ' + new Date().toLocaleTimeString();
+  area.style.background = 'hsl(' + (count * 30) + ', 70%, 30%)';
+}
+
+area.addEventListener('click', (e) => {
+  logEvent('CLICK', e.clientX, e.clientY);
+});
+
+area.addEventListener('touchstart', (e) => {
+  const touch = e.touches[0];
+  logEvent('TOUCH', touch.clientX, touch.clientY);
+  e.preventDefault();
+});
+
+area.addEventListener('mousedown', (e) => {
+  logEvent('MOUSE', e.clientX, e.clientY);
+});
+</script>
+</body>
+</html>

@@ -6,7 +6,8 @@ import json
 import os
 
 app = FastAPI()
-model = WhisperModel("tiny.en", compute_type="int8")
+# Upgraded to base.en for better accuracy (tiny.en was too aggressive)
+model = WhisperModel("base.en", compute_type="int8")
 
 class TranscriptionRequest(BaseModel):
     file_path: str
@@ -23,10 +24,19 @@ async def transcribe(request_data: TranscriptionRequest):
         return {"error": f"File not found at path: {file_path}"}
     
     try:
-        segments, _ = model.transcribe(file_path, word_timestamps=True)
+        segments, _ = model.transcribe(
+            file_path,
+            word_timestamps=True,
+            beam_size=5,
+            best_of=5,
+            vad_filter=True,
+            vad_parameters={"min_silence_duration_ms": 500}
+        )
+        # Filter out hallucinated single-character segments
         data = [
             {"start": seg.start, "end": seg.end, "text": seg.text}
             for seg in segments
+            if len(seg.text.strip()) > 1  # Skip ".", " ", etc.
         ]
         return data
     except Exception as e:
